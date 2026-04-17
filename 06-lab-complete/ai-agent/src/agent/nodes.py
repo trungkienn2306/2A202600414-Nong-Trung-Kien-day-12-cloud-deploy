@@ -1,20 +1,43 @@
 from src.agent.state import AgentState
 from src.agent.tools import tools
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import ToolNode
 import os
-from dotenv import load_dotenv
+import logging
 from src.core.config import settings
 from langchain_core.messages import SystemMessage
 
+logger = logging.getLogger(__name__)
 
-# Initialize the model with Tool Calling
-# Initialize the base model
-llm = ChatGoogleGenerativeAI(
-    model=settings.MODEL_NAME, 
-    google_api_key=settings.GEMINI_API_KEY,
-    temperature=settings.TEMPERATURE
-)
+def get_llm():
+    """
+    Factory function to get the LLM with fallback support.
+    Gemini (Primary) -> OpenAI (Fallback)
+    """
+    # 1. Try Gemini
+    if settings.GEMINI_API_KEY:
+        try:
+            return ChatGoogleGenerativeAI(
+                model=settings.MODEL_NAME, 
+                google_api_key=settings.GEMINI_API_KEY,
+                temperature=settings.TEMPERATURE
+            )
+        except Exception as e:
+            logger.warning(f"Failed to init Gemini: {e}. Trying fallback...")
+            
+    # 2. Try OpenAI fallback
+    if settings.OPENAI_API_KEY:
+        logger.info("Using OpenAI fallback provider.")
+        return ChatOpenAI(
+            model=settings.OPENAI_MODEL_NAME,
+            api_key=settings.OPENAI_API_KEY,
+            temperature=settings.TEMPERATURE
+        )
+        
+    # 3. Final Fallback (or Error)
+    logger.error("No valid LLM configuration found (Neither Gemini nor OpenAI keys provided).")
+    raise ValueError("No LLM provider available. Check your .env file.")
 
 
 # Define the system instructions for the agent
@@ -40,6 +63,9 @@ def call_model(state: AgentState):
     # Prepend the system prompt if it's the beginning of the conversation
     if not any(isinstance(m, SystemMessage) for m in messages):
         messages = [SystemMessage(content=SYSTEM_PROMPT)] + messages
+    
+    # Get the LLM to use (with fallback support)
+    llm = get_llm()
     
     # Conditionally bind tools based on global settings
     if settings.USE_TOOLS:

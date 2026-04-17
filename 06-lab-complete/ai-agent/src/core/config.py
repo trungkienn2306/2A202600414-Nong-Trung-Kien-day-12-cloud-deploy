@@ -1,6 +1,6 @@
 import os
-from typing import List, Optional
-from pydantic import Field
+from typing import List, Optional, Union, Any
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 
@@ -15,7 +15,10 @@ class Settings(BaseSettings):
     
     # LLM keys
     GEMINI_API_KEY: Optional[str] = None
-    MODEL_NAME: str = "gemini-2.0-flash"
+    MODEL_NAME: str = "gemini-1.5-flash"
+    OPENAI_API_KEY: Optional[str] = None
+    OPENAI_MODEL_NAME: str = "gpt-4o-mini"
+    DEFAULT_PROVIDER: str = "gemini"
     TEMPERATURE: float = 0.1
     
     # Tool keys
@@ -35,7 +38,20 @@ class Settings(BaseSettings):
     JWT_SECRET: str = "dev-jwt-secret-replace-me-in-prod"
     
     # CORS
-    CORS_ORIGINS: List[str] = ["http://localhost:5173", "http://localhost:5174", "http://127.0.0.1:5173", "http://127.0.0.1:5174"]
+    CORS_ORIGINS: Union[str, List[str]] = ["http://localhost:5173", "http://localhost:5174"]
+
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v: Any) -> List[str]:
+        if isinstance(v, str):
+            if v.startswith("[") and v.endswith("]"):
+                import json
+                try:
+                    return json.loads(v)
+                except:
+                    pass
+            return [i.strip() for i in v.split(",") if i.strip()]
+        return v
 
     model_config = SettingsConfigDict(
         env_file=".env",
