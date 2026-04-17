@@ -7,9 +7,15 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm install --no-audit --no-fund
 
+# Build arguments for Vite (baked at build time)
+ARG VITE_API_BASE_URL
+ARG VITE_AGENT_API_KEY
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_AGENT_API_KEY=$VITE_AGENT_API_KEY
+
 # Copy all source files
 COPY . ./
-RUN npx vite build
+RUN npm run build
 
 # Stage 2: Serve
 FROM nginx:alpine

@@ -11,7 +11,13 @@ https://github.com/trungkienn2306/2A202600414-Nong-Trung-Kien-day-12-cloud-deplo
 > Deploy Railway hoặc Render từ GitHub repo trên. Điền URL sau khi deploy xong.
 
 ```
-https://your-agent.railway.app
+https://ai-agent-backend-j6j5.onrender.com
+```
+
+## Frontend URL
+
+```
+https://ai-agent-frontend-iw63.onrender.com/
 ```
 
 ## Platform
@@ -87,15 +93,13 @@ railway domain
 ### Health Check
 
 ```bash
-curl https://your-agent.railway.app/health
+curl https://ai-agent-backend-j6j5.onrender.com/health
 # Expected:
 # {
 #   "status": "ok",
 #   "version": "1.0.0",
 #   "environment": "production",
-#   "uptime_seconds": 42.3,
-#   "checks": {"llm": "mock", "redis": "unavailable"},
-#   "timestamp": "2026-04-17T10:00:00+00:00"
+#   "timestamp": "..."
 # }
 ```
 

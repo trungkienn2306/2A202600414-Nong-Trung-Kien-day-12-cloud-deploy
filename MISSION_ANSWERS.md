@@ -1,6 +1,7 @@
 # Day 12 Lab — Mission Answers
 
-> **Student:** [Your Name]  
+> **Student:** Nông Trung Kiên  
+> **Student ID:** 2A202600414  
 > **Date:** 17/4/2026  
 > **Course:** AICB-P1 · VinUniversity 2026
 
@@ -137,7 +138,8 @@ railway up
 railway domain
 ```
 
-**Public URL:** `https://ai-agent-production.railway.app`
+**Public URL:** `https://ai-agent-backend-j6j5.onrender.com`
+**Frontend URL:** `https://ai-agent-frontend-iw63.onrender.com/`
 
 **Test:**
 ```bash
