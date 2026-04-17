@@ -71,13 +71,20 @@ async def get_api_key(
         logger.info("Auth Debug | Permitting empty key in development mode")
         return "dev-mode"
     
+    if not api_key:
+        logger.warning("Auth Debug | Missing API Key header.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing API Key"
+        )
+    
     if api_key.strip() == settings.AGENT_API_KEY.strip():
         return api_key
     
     logger.warning(f"Auth Debug | Mismatch! Invalid API Key received.")
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid or missing API Key"
+        detail="Invalid API Key"
     )
 
 # 3. CORS
@@ -169,9 +176,14 @@ async def chat_endpoint(request: ChatRequest, api_key: APIKey = Depends(get_api_
             status="success"
         )
 
+    except HTTPException as he:
+        # Re-raise HTTP exceptions (like 401, 400) without catching them as 500
+        raise he
     except Exception as e:
-        logger.error(f"Error in chat endpoint: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        logger.error(f"!!! CRITICAL ERROR in chat endpoint: {str(e)}", exc_info=True)
+        # In production, we return a slightly more helpful message for debugging the lab
+        error_msg = str(e) if settings.ENVIRONMENT != "production" else "Internal Server Error"
+        raise HTTPException(status_code=500, detail=f"Backend Error: {error_msg}")
 
 # 5. Graceful Shutdown
 @app.on_event("shutdown")

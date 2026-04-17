@@ -58,12 +58,23 @@ def call_model(state: AgentState):
     Node that calls the LLM with the current message history.
     It conditionally binds tools if settings.USE_TOOLS is True.
     """
-    messages = state["messages"]
+    # 1. Ensure System Prompt is present
+    system_msg = [m for m in messages if isinstance(m, SystemMessage)]
+    if not system_msg:
+        system_msg = [SystemMessage(content=SYSTEM_PROMPT)]
     
-    # Prepend the system prompt if it's the beginning of the conversation
-    if not any(isinstance(m, SystemMessage) for m in messages):
-        messages = [SystemMessage(content=SYSTEM_PROMPT)] + messages
+    # 2. Get other messages (Human, AI, Tool)
+    other_msgs = [m for m in messages if not isinstance(m, SystemMessage)]
     
+    # 3. K-Window Logic (k=3 means ~6 messages: 3 Human + 3 AI)
+    # This reduces Token usage and prevents Redis payload from growing too large
+    k = 3
+    window_size = k * 2
+    trimmed_history = other_msgs[-window_size:] if len(other_msgs) > window_size else other_msgs
+    
+    # Final message list for LLM
+    final_messages = system_msg + trimmed_history
+
     try:
         # Get the LLM to use (with fallback support)
         llm = get_llm()
@@ -74,7 +85,7 @@ def call_model(state: AgentState):
         else:
             model = llm
             
-        response = model.invoke(messages)
+        response = model.invoke(final_messages)
     except Exception as e:
         logger.error(f"Error invoking Gemini LLM: {e}. Checking for OpenAI fallback...")
         if settings.OPENAI_API_KEY:
@@ -88,7 +99,7 @@ def call_model(state: AgentState):
                 model = llm.bind_tools(tools)
             else:
                 model = llm
-            response = model.invoke(messages)
+            response = model.invoke(final_messages)
         else:
             logger.error("No fallback available.")
             raise e

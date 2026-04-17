@@ -76,17 +76,30 @@ memory = None
 if settings.REDIS_URL:
     try:
         from langgraph.checkpoint.redis import RedisSaver
-        from redis import Redis
-        # Initialize Redis client manually to avoid context manager issues in long-running app
-        redis_client = Redis.from_url(settings.REDIS_URL)
+        from redis import Redis, ConnectionPool
+        
+        # 1. Connection Pooling to handle Render Free limits (Max 20 connections)
+        # Using a pool ensures we reuse connections efficiently.
+        pool = ConnectionPool.from_url(
+            settings.REDIS_URL, 
+            max_connections=15, # Leaving some room for other processes
+            socket_timeout=5,
+            socket_connect_timeout=5,
+            retry_on_timeout=True,
+            health_check_interval=30
+        )
+        redis_client = Redis(connection_pool=pool)
+        
+        # 2. Check connection immediately
+        redis_client.ping()
+        
         memory = RedisSaver(redis_client)
         # Required to create indices/structure on startup
         memory.setup()
-        logger.info(f"Using Redis checkpointer: {settings.REDIS_URL}")
-    except ImportError:
-        logger.warning("langgraph-checkpoint-redis or redis not installed. Falling back to SQLite.")
+        logger.info(f"Using Robust Redis checkpointer: {settings.REDIS_URL}")
     except Exception as e:
-        logger.error(f"Failed to connect to Redis: {e}. Falling back to SQLite.")
+        logger.error(f"Failed to connect to Redis: {e}. Falling back to SQLite to maintain service.")
+        memory = None
 
 if memory is None:
     # Initialize the SQLite connection
