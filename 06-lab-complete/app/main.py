@@ -28,14 +28,12 @@ from collections import defaultdict, deque
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI, HTTPException, Security, Depends, Request, Response
-from fastapi.responses import StreamingResponse, JSONResponse
-from fastapi.security.api_key import APIKeyHeader
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
 import uvicorn
 
 from app.config import settings
+from app.auth import verify_api_key
+from app.rate_limiter import check_rate_limit
+from app.cost_guard import check_and_record_cost, estimate_cost
 
 # Mock LLM (thay bằng OpenAI/Anthropic khi có API key)
 from utils.mock_llm import ask as llm_ask, ask_stream as llm_stream
@@ -77,94 +75,10 @@ def get_redis():
         return None
 
 # ─────────────────────────────────────────────────────────
-# In-memory Rate Limiter (fallback khi không có Redis)
+# Auth, Rate Limit, Cost Guard được load từ các file riêng biệt (checklist compliance)
 # ─────────────────────────────────────────────────────────
-_rate_windows: dict[str, deque] = defaultdict(deque)
-_rate_locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
 
 
-async def check_rate_limit(user_id: str) -> None:
-    """Sliding window rate limiter — per user. Thread-safe."""
-    r = get_redis()
-    now = time.time()
-    limit = settings.rate_limit_per_minute
-
-    if r:
-        # Redis-based sliding window (atomic pipeline — production-grade)
-        key = f"rate:{user_id}"
-        pipe = r.pipeline()
-        pipe.zremrangebyscore(key, 0, now - 60)
-        pipe.zcard(key)
-        pipe.expire(key, 120)
-        _, count, *_ = pipe.execute()
-        if count >= limit:
-            raise HTTPException(
-                status_code=429,
-                detail=f"Rate limit exceeded: {limit} req/min",
-                headers={"Retry-After": "60"},
-            )
-        # Only add after confirming not exceeded
-        r.zadd(key, {str(now): now})
-    else:
-        # In-memory fallback — use per-user lock for thread safety
-        async with _rate_locks[user_id]:
-            window = _rate_windows[user_id]
-            while window and window[0] < now - 60:
-                window.popleft()
-            if len(window) >= limit:
-                raise HTTPException(
-                    status_code=429,
-                    detail=f"Rate limit exceeded: {limit} req/min",
-                    headers={"Retry-After": "60"},
-                )
-            window.append(now)
-
-
-# ─────────────────────────────────────────────────────────
-# Cost Guard — per-user, monthly budget
-# ─────────────────────────────────────────────────────────
-_monthly_cost: dict[str, float] = defaultdict(float)
-_cost_locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
-
-
-def _estimate_cost(input_tokens: int, output_tokens: int) -> float:
-    return (input_tokens / 1000) * 0.00015 + (output_tokens / 1000) * 0.0006
-
-
-async def check_and_record_cost(user_id: str, cost: float) -> None:
-    """Check budget and record cost atomically. Raises 402 when monthly budget exceeded."""
-    r = get_redis()
-    budget = settings.monthly_budget_usd
-    month_key = datetime.now().strftime("%Y-%m")
-
-    if r:
-        redis_key = f"cost:{user_id}:{month_key}"
-        # Use Lua script for atomic check-and-increment
-        lua_script = """
-            local current = tonumber(redis.call('GET', KEYS[1])) or 0
-            if current + tonumber(ARGV[1]) > tonumber(ARGV[2]) then
-                return 0
-            end
-            redis.call('INCRBYFLOAT', KEYS[1], ARGV[1])
-            redis.call('EXPIRE', KEYS[1], ARGV[3])
-            return 1
-        """
-        result = r.eval(lua_script, 1, redis_key, cost, budget, 32 * 24 * 3600)
-        if not result:
-            raise HTTPException(
-                status_code=402,
-                detail=f"Monthly budget ${budget} exceeded. Resets next month.",
-            )
-    else:
-        # In-memory fallback — use lock for thread safety
-        async with _cost_locks[user_id]:
-            current = _monthly_cost[user_id]
-            if current + cost > budget:
-                raise HTTPException(
-                    status_code=402,
-                    detail=f"Monthly budget ${budget} exceeded. Resets next month.",
-                )
-            _monthly_cost[user_id] += cost
 
 
 # ─────────────────────────────────────────────────────────
@@ -207,19 +121,6 @@ def clear_history(user_id: str) -> None:
         _in_memory_history[user_id] = []
 
 
-# ─────────────────────────────────────────────────────────
-# Auth
-# ─────────────────────────────────────────────────────────
-api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
-
-
-def verify_api_key(api_key: str = Security(api_key_header)) -> str:
-    if not api_key or api_key != settings.agent_api_key:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or missing API key. Include header: X-API-Key: <key>",
-        )
-    return api_key
 
 
 # ─────────────────────────────────────────────────────────
@@ -350,7 +251,7 @@ async def ask_agent(
     **Authentication:** Include header `X-API-Key: <your-key>`
     """
     # Rate limit per user
-    await check_rate_limit(body.user_id)
+    await check_rate_limit(body.user_id, get_redis)
 
     logger.info(json.dumps({
         "event": "agent_call",
@@ -381,8 +282,8 @@ async def ask_agent(
     # Record cost AFTER successful LLM call (no double-charge on error)
     input_tokens = len(body.question.split()) * 2
     output_tokens = len(answer.split()) * 2
-    total_cost = _estimate_cost(input_tokens, output_tokens)
-    await check_and_record_cost(body.user_id, total_cost)
+    total_cost = estimate_cost(input_tokens, output_tokens)
+    await check_and_record_cost(body.user_id, total_cost, get_redis)
 
     current_history = get_history(body.user_id)
 
@@ -417,7 +318,7 @@ async def ask_agent_stream(
     ```
     """
     # Rate limit per user
-    await check_rate_limit(body.user_id)
+    await check_rate_limit(body.user_id, get_redis)
 
     logger.info(json.dumps({
         "event": "agent_stream_call",
@@ -442,8 +343,8 @@ async def ask_agent_stream(
             # Record cost after successful completion
             input_tokens = len(body.question.split()) * 2
             output_tokens = len(answer.split()) * 2
-            total_cost = _estimate_cost(input_tokens, output_tokens)
-            await check_and_record_cost(body.user_id, total_cost)
+            total_cost = estimate_cost(input_tokens, output_tokens)
+            await check_and_record_cost(body.user_id, total_cost, get_redis)
 
             done_data = json.dumps({
                 "token": "",

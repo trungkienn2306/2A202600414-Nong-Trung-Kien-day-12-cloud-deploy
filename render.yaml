@@ -31,6 +31,8 @@ services:
         sync: false
       - key: GEMINI_API_KEY
         sync: false
+      - key: CORS_ORIGINS
+        value: "https://ai-agent-frontend-iw63.onrender.com"
 
   # 3. Frontend (React/Static)
   - type: web
