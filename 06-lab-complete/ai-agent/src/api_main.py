@@ -47,11 +47,34 @@ app = FastAPI(
 API_KEY_NAME = "X-API-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
-async def get_api_key(api_key: str = Security(api_key_header)):
+async def get_api_key(
+    api_key: str = Security(api_key_header),
+    request: Request = None
+):
+    # --- AUTH DEBUG ---
+    expected = settings.AGENT_API_KEY or "NOT_SET"
+    received = api_key or "MISSING"
+    
+    # Log details to Render logs
+    all_headers = dict(request.headers) if request else {}
+    # Masking keys for safety but keeping enough to compare
+    def mask(k): return f"{k[:3]}***{k[-2:]}" if len(k) > 5 else "SHORT"
+    
+    logger.info(f"Auth Debug | Env: {settings.ENVIRONMENT}")
+    logger.info(f"Auth Debug | Expected: {mask(expected)}")
+    logger.info(f"Auth Debug | Received: {mask(received) if received != 'MISSING' else 'MISSING'}")
+    
+    # Check if X-API-Key is present even if auto-error=False might hide it
+    logger.info(f"Auth Debug | All Headers (sensitive masked): { {k: (v[:3]+'***' if 'key' in k.lower() or 'auth' in k.lower() else v) for k, v in all_headers.items()} }")
+    
     if settings.ENVIRONMENT == "development" and not api_key:
+        logger.info("Auth Debug | Permitting empty key in development mode")
         return "dev-mode"
+    
     if api_key == settings.AGENT_API_KEY:
         return api_key
+    
+    logger.warning(f"Auth Debug | Mismatch! Invalid API Key received.")
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid or missing API Key"

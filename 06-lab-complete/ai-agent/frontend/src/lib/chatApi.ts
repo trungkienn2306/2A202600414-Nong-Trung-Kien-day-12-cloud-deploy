@@ -90,6 +90,12 @@ export async function postChat({
 }: PostChatInput): Promise<PostChatResult> {
   const endpoint = `${API_BASE_URL}/chat`
   try {
+    console.log('[chatApi] Sending POST request', {
+      endpoint,
+      key_prefix: AGENT_API_KEY ? AGENT_API_KEY.slice(0, 3) + '***' : 'MISSING',
+      message_len: message.length
+    })
+
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 
@@ -105,7 +111,9 @@ export async function postChat({
     if (!res.ok || !body) {
       console.error('[chatApi] Invalid chat response', {
         status: res.status,
+        statusText: res.statusText,
         endpoint,
+        key_used_prefix: AGENT_API_KEY ? AGENT_API_KEY.slice(0, 3) + '***' : 'MISSING',
         browserOrigin: window.location.origin,
       })
       throw new Error('Không thể gửi tin tới backend.')
