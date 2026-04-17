@@ -11,7 +11,7 @@ services:
     name: ai-agent-backend
     runtime: docker
     dockerContext: 06-lab-complete/ai-agent
-    dockerfilePath: Dockerfile.backend
+    dockerfilePath: 06-lab-complete/ai-agent/Dockerfile.backend
     region: singapore
     plan: free
     healthCheckPath: /health
@@ -37,7 +37,7 @@ services:
     name: ai-agent-frontend
     runtime: docker
     dockerContext: 06-lab-complete/ai-agent
-    dockerfilePath: Dockerfile.frontend
+    dockerfilePath: 06-lab-complete/ai-agent/Dockerfile.frontend
     region: singapore
     plan: free
     envVars:
