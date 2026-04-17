@@ -80,8 +80,9 @@ if settings.REDIS_URL:
         
         # 1. Connection Pooling to handle Render Free limits (Max 20 connections)
         # Using a pool ensures we reuse connections efficiently.
+        redis_url = settings.REDIS_URL.strip()
         pool = ConnectionPool.from_url(
-            settings.REDIS_URL, 
+            redis_url, 
             max_connections=15, # Leaving some room for other processes
             socket_timeout=5,
             socket_connect_timeout=5,

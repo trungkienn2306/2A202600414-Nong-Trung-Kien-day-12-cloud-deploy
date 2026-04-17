@@ -181,8 +181,8 @@ async def chat_endpoint(request: ChatRequest, api_key: APIKey = Depends(get_api_
         raise he
     except Exception as e:
         logger.error(f"!!! CRITICAL ERROR in chat endpoint: {str(e)}", exc_info=True)
-        # In production, we return a slightly more helpful message for debugging the lab
-        error_msg = str(e) if settings.ENVIRONMENT != "production" else "Internal Server Error"
+        # We always return the real error for now to help you debug why it died after 3 chats
+        error_msg = str(e)
         raise HTTPException(status_code=500, detail=f"Backend Error: {error_msg}")
 
 # 5. Graceful Shutdown

@@ -6,7 +6,7 @@ from langgraph.prebuilt import ToolNode
 import os
 import logging
 from src.core.config import settings
-from langchain_core.messages import SystemMessage
+from langchain_core.messages import SystemMessage, HumanMessage
 
 logger = logging.getLogger(__name__)
 
@@ -68,11 +68,18 @@ def call_model(state: AgentState):
     # 2. Get other messages (Human, AI, Tool)
     other_msgs = [m for m in messages if not isinstance(m, SystemMessage)]
     
-    # 3. K-Window Logic (k=3 means ~6 messages: 3 Human + 3 AI)
-    # This reduces Token usage and prevents Redis payload from growing too large
+    # 3. K-Window Logic (must start with Human for API compliance)
     k = 3
     window_size = k * 2
-    trimmed_history = other_msgs[-window_size:] if len(other_msgs) > window_size else other_msgs
+    if len(other_msgs) > window_size:
+        # Take the last window_size messages
+        trimmed_history = other_msgs[-window_size:]
+        # API COMPLIANCE: Ensure history starts with a HumanMessage after System Prompt
+        # If the first trimmed message is AI or Tool, we remove it.
+        while trimmed_history and not isinstance(trimmed_history[0], HumanMessage):
+            trimmed_history.pop(0)
+    else:
+        trimmed_history = other_msgs
     
     # Final message list for LLM
     final_messages = system_msg + trimmed_history
