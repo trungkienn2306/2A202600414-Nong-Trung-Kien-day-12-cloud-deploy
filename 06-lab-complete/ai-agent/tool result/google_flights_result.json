@@ -1,0 +1,15 @@
+{
+  "origin": "HAN",
+  "destination": "PQC",
+  "trip_type": "round_trip",
+  "search_dates": [
+    "2026-04-07"
+  ],
+  "return_date": "2026-04-10",
+  "adults": 1,
+  "currency": "VND",
+  "total_found": 0,
+  "flights": [],
+  "cheapest": null,
+  "price_insights": null
+}

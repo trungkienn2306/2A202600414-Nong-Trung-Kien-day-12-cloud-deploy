@@ -1,0 +1,40 @@
+{
+  "location": "Tokyo",
+  "temperature_c": 19.75,
+  "feels_like_c": 19.63,
+  "humidity_pct": 71,
+  "description": "mây cụm",
+  "wind_speed_ms": 4.63,
+  "forecast": [
+    {
+      "date": "2026-04-06",
+      "temp_min_c": 19.32,
+      "temp_max_c": 19.82,
+      "description": "mây cụm"
+    },
+    {
+      "date": "2026-04-07",
+      "temp_min_c": 11.31,
+      "temp_max_c": 11.31,
+      "description": "mây đen u ám"
+    },
+    {
+      "date": "2026-04-08",
+      "temp_min_c": 14.52,
+      "temp_max_c": 14.52,
+      "description": "bầu trời quang đãng"
+    },
+    {
+      "date": "2026-04-09",
+      "temp_min_c": 16.29,
+      "temp_max_c": 16.29,
+      "description": "mây đen u ám"
+    },
+    {
+      "date": "2026-04-10",
+      "temp_min_c": 17.08,
+      "temp_max_c": 17.08,
+      "description": "mây đen u ám"
+    }
+  ]
+}

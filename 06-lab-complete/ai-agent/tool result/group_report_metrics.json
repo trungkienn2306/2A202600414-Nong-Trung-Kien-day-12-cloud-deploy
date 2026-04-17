@@ -1,0 +1,63 @@
+{
+  "summary": {
+    "count": 5,
+    "success_http": 5,
+    "status_success": 5,
+    "status_need_input": 0,
+    "p50_latency_ms": 2485.34,
+    "max_latency_ms": 3739.51,
+    "min_latency_ms": 1873.65
+  },
+  "results": [
+    {
+      "id": "TC01",
+      "kind": "in_scope_basic",
+      "http_status": 200,
+      "status": "success",
+      "thread_id_present": true,
+      "question_present": false,
+      "latency_ms": 1873.65,
+      "response_preview": "Chào bạn! Rất vui được hỗ trợ bạn. Để tôi có thể tư vấn tốt nhất, bạn có thể cho tôi biết thêm về sở thích của bạn không? Ví dụ:\n\n*   Bạn thích đi du lịch ở đâu (biển, núi, thành p"
+    },
+    {
+      "id": "TC02",
+      "kind": "need_input_check",
+      "http_status": 200,
+      "status": "success",
+      "thread_id_present": true,
+      "question_present": false,
+      "latency_ms": 2225.72,
+      "response_preview": "Chào bạn, rất vui được hỗ trợ bạn lên kế hoạch du lịch! Để mình có thể tư vấn lịch trình phù hợp nhất, bạn vui lòng cho mình biết thêm một vài thông tin nhé:\n\n1.  **Bạn muốn đi đâu"
+    },
+    {
+      "id": "TC03",
+      "kind": "exchange_tool",
+      "http_status": 200,
+      "status": "success",
+      "thread_id_present": true,
+      "question_present": false,
+      "latency_ms": 3000.88,
+      "response_preview": "Tỷ giá hiện tại là 1 VND = 0.006087 JPY."
+    },
+    {
+      "id": "TC04",
+      "kind": "weather_tool",
+      "http_status": 200,
+      "status": "success",
+      "thread_id_present": true,
+      "question_present": false,
+      "latency_ms": 3739.51,
+      "response_preview": "Thời tiết ở Tokyo hôm nay là bầu trời quang đãng, nhiệt độ hiện tại là 18.29°C, cảm giác như 17.92°C, độ ẩm 67% và tốc độ gió là 6.69 m/s.\n\nDự báo thời tiết 5 ngày tới:\n* 2026-04-0"
+    },
+    {
+      "id": "TC05",
+      "kind": "out_of_scope",
+      "http_status": 200,
+      "status": "success",
+      "thread_id_present": true,
+      "question_present": false,
+      "latency_ms": 2485.34,
+      "response_preview": "Chào bạn, tôi là một Trợ lý Du lịch Thông minh và chuyên hỗ trợ các thông tin liên quan đến du lịch. Yêu cầu của bạn về giải thích thuật toán Quicksort và cung cấp code Python nằm "
+    }
+  ]
+}
