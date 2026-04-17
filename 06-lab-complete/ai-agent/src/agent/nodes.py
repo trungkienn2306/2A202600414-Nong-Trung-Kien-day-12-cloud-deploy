@@ -64,16 +64,35 @@ def call_model(state: AgentState):
     if not any(isinstance(m, SystemMessage) for m in messages):
         messages = [SystemMessage(content=SYSTEM_PROMPT)] + messages
     
-    # Get the LLM to use (with fallback support)
-    llm = get_llm()
-    
-    # Conditionally bind tools based on global settings
-    if settings.USE_TOOLS:
-        model = llm.bind_tools(tools)
-    else:
-        model = llm
+    try:
+        # Get the LLM to use (with fallback support)
+        llm = get_llm()
         
-    response = model.invoke(messages)
+        # Conditionally bind tools based on global settings
+        if settings.USE_TOOLS:
+            model = llm.bind_tools(tools)
+        else:
+            model = llm
+            
+        response = model.invoke(messages)
+    except Exception as e:
+        logger.error(f"Error invoking Gemini LLM: {e}. Checking for OpenAI fallback...")
+        if settings.OPENAI_API_KEY:
+            logger.info("Retrying with OpenAI fallback...")
+            llm = ChatOpenAI(
+                model=settings.OPENAI_MODEL_NAME,
+                api_key=settings.OPENAI_API_KEY,
+                temperature=settings.TEMPERATURE
+            )
+            if settings.USE_TOOLS:
+                model = llm.bind_tools(tools)
+            else:
+                model = llm
+            response = model.invoke(messages)
+        else:
+            logger.error("No fallback available.")
+            raise e
+
     # We return a list, which will be appended to the existing messages 
     return {"messages": [response]}
 
