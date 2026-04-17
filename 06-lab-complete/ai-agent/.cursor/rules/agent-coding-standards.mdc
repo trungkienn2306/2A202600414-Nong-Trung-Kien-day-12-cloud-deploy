@@ -1,0 +1,28 @@
+---
+description: Project-wide coding standards for Cursor AI agent
+alwaysApply: true
+---
+
+# AI Agent Coding Standards
+
+Apply these standards in every coding task for this project.
+
+- Do not use emoji in generated code, documentation, comments, commit messages, or user-facing technical output.
+- Add concise and meaningful comments/docstrings:
+  - Explain each file purpose at top-level when creating/updating core files.
+  - Explain each function/tool/API responsibility, inputs, outputs, and error behavior.
+  - Avoid redundant comments that only restate code.
+- Keep code clean and maintainable:
+  - Prefer clear naming, small functions, and predictable structure.
+  - Use type hints/types for public functions, API models, and important internal flows.
+- Handle CORS explicitly and safely:
+  - Do not leave permissive wildcard CORS in production-oriented code.
+  - Prefer env-driven allowlists and clear defaults for local development.
+- Provide clear logging for users and developers:
+  - Log key actions and failures with context.
+  - Keep messages readable, actionable, and easy to debug.
+- Implement robust error handling:
+  - Validate inputs early.
+  - Return clean API errors/messages without leaking sensitive internals.
+  - Preserve enough diagnostic detail in logs for troubleshooting.
+- Write documentation in Vietnamese with proper diacritics; use English terms in quotes for clarification only.

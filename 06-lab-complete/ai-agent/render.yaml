@@ -1,0 +1,53 @@
+services:
+  # 1. Redis (State Management)
+  - type: redis
+    name: ai-agent-redis
+    region: singapore
+    plan: free
+    ipAllowList: [] # Required for security, Render auto-connects internal
+
+  # 2. Backend (FastAPI)
+  - type: web
+    name: ai-agent-backend
+    runtime: docker
+    dockerContext: .
+    dockerfilePath: Dockerfile.backend
+    region: singapore
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: REDIS_URL
+        fromService:
+          name: ai-agent-redis
+          type: redis
+          property: connectionString
+      - key: AGENT_API_KEY
+        generateValue: true
+      - key: JWT_SECRET
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+
+  # 3. Frontend (React/Static)
+  - type: web
+    name: ai-agent-frontend
+    runtime: docker
+    dockerContext: .
+    dockerfilePath: Dockerfile.frontend
+    region: singapore
+    plan: free
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          name: ai-agent-backend
+          type: web
+          property: host
+      - key: VITE_AGENT_API_KEY
+        fromService:
+          name: ai-agent-backend
+          type: web
+          property: env:AGENT_API_KEY

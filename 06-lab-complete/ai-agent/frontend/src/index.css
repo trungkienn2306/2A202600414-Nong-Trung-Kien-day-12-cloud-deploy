@@ -1,0 +1,21 @@
+@import 'tailwindcss';
+
+/* Palette du lịch — xem docs/TECH-SPEC-chatbot-du-lich.md §3.2 */
+@theme {
+  --color-brand-sky: #20b5f4;
+  --color-brand-cyan: #8ce4fc;
+  --color-brand-teal: #1098a4;
+  --color-brand-ocean: #334f5f;
+  --color-accent-sun: #f9c74f;
+  --color-accent-rose: #b16474;
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+#root {
+  min-height: 100dvh;
+}

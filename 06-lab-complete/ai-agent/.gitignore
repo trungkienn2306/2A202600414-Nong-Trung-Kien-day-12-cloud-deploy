@@ -1,0 +1,32 @@
+.env
+logs/
+__pycache__/
+*.log
+.DS_Store
+models/
+venv/
+checkpoints.sqlite
+*.json
+*.pyc
+*.pyo
+
+# Node / frontend dependencies and caches
+node_modules/
+frontend/node_modules/
+frontend/.vite/
+frontend/dist/
+frontend/dist-ssr/
+
+# TypeScript / Vite build artifacts
+*.tsbuildinfo
+frontend/src/**/*.js
+frontend/src/**/*.js.map
+
+# Python cache/build artifacts
+.pytest_cache/
+*.pyd
+*.sqlite-shm
+*.sqlite-wal
+
+# Local temp / legacy trash
+frontend/.trash_legacy/
