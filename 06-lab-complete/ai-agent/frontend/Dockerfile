@@ -3,19 +3,16 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files (explicit path)
-COPY 06-lab-complete/ai-agent/frontend/package.json 06-lab-complete/ai-agent/frontend/package-lock.json* ./
+# Copy package files (local to frontend context)
+COPY package.json package-lock.json* ./
 RUN npm install --no-audit --no-fund
 
 # Copy all source files
-COPY 06-lab-complete/ai-agent/frontend/ ./
+COPY . ./
 RUN npx vite build
 
 # Stage 2: Serve
 FROM nginx:alpine
-
-# Copy custom nginx config if needed, otherwise use default
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy build files from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
