@@ -1,6 +1,6 @@
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim()
   ? (import.meta.env.VITE_API_BASE_URL as string).replace(/\/+$/, '')
-  : 'http://localhost:8000'
+  : '/api'
 
 const AGENT_API_KEY = (import.meta.env.VITE_AGENT_API_KEY as string | undefined)?.trim() || 'dev-key-12345'
 

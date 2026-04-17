@@ -23,5 +23,8 @@ FROM nginx:alpine
 # Copy build files from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
+# Copy Nginx proxy template (envvars will be substituted at startup)
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
