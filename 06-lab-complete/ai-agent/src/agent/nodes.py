@@ -57,6 +57,7 @@ def call_model(state: AgentState):
     """
     Node that calls the LLM with the current message history.
     It conditionally binds tools if settings.USE_TOOLS is True.
+    Memory window: k=3 (only last 3 conversation turns are sent to the LLM).
     """
     messages = state["messages"]
     
@@ -72,10 +73,9 @@ def call_model(state: AgentState):
     k = 3
     window_size = k * 2
     if len(other_msgs) > window_size:
-        # Take the last window_size messages
         trimmed_history = other_msgs[-window_size:]
-        # API COMPLIANCE: Ensure history starts with a HumanMessage after System Prompt
-        # If the first trimmed message is AI or Tool, we remove it.
+        # API COMPLIANCE: Ensure history starts with a HumanMessage.
+        # If the first trimmed message is AI or Tool, remove it.
         while trimmed_history and not isinstance(trimmed_history[0], HumanMessage):
             trimmed_history.pop(0)
     else:
@@ -85,22 +85,21 @@ def call_model(state: AgentState):
     final_messages = system_msg + trimmed_history
 
     try:
-        # Get the LLM to use (with fallback support)
         llm = get_llm()
         
-        # Conditionally bind tools based on global settings
         if settings.USE_TOOLS:
             model = llm.bind_tools(tools)
         else:
             model = llm
             
         response = model.invoke(final_messages)
-        # In development, try to log exactly what we're sending to figure out why it crashes
+    except Exception as e:
         logger.error(f"Error invoking primary LLM: {e}")
+        # Log message sequence for debugging
         try:
             debug_info = [(m.type, getattr(m, 'name', None), bool(getattr(m, 'tool_calls', None))) for m in final_messages]
             logger.error(f"DEBUG final_messages sequence: {debug_info}")
-        except:
+        except Exception:
             pass
 
         if settings.OPENAI_API_KEY:
@@ -124,3 +123,4 @@ def call_model(state: AgentState):
 
 # ToolNode is a prebuilt node in LangGraph that handles tool execution
 tool_node = ToolNode(tools)
+
