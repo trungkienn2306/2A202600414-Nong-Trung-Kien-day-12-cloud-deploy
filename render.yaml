@@ -24,7 +24,7 @@ services:
           type: redis
           property: connectionString
       - key: AGENT_API_KEY
-        generateValue: true
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: OPENAI_API_KEY
@@ -47,7 +47,4 @@ services:
           type: web
           property: host
       - key: VITE_AGENT_API_KEY
-        fromService:
-          name: ai-agent-backend
-          type: web
-          property: env:AGENT_API_KEY
+        sync: false
