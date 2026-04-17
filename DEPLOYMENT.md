@@ -1,8 +1,14 @@
 # Deployment Information
 
+## GitHub Repository
+
+```
+https://github.com/trungkienn2306/2A202600414-Nong-Trung-Kien-day-12-cloud-deploy
+```
+
 ## Public URL
 
-> ⚠️ Điền URL thật sau khi deploy (Railway hoặc Render)
+> Deploy Railway hoặc Render từ GitHub repo trên. Điền URL sau khi deploy xong.
 
 ```
 https://your-agent.railway.app
@@ -10,29 +16,48 @@ https://your-agent.railway.app
 
 ## Platform
 
-**Railway** (recommended — deploy < 5 phút)
+**Railway** (recommended — deploy < 5 phút từ GitHub)
 
-Alternative: Render, GCP Cloud Run
+Alternative: Render (dùng `render.yaml` có sẵn)
 
 ---
 
 ## Quick Deploy
 
-### Railway (< 5 phút)
+### Railway (< 5 phút) — Deploy từ GitHub
+
+**Cách 1: Deploy qua Railway Dashboard (không cần CLI)**
+
+1. Vào https://railway.app → Login (GitHub account)
+2. **New Project** → **Deploy from GitHub repo**
+3. Chọn repo: `2A202600414-Nong-Trung-Kien-day-12-cloud-deploy`
+4. Railway tự detect Dockerfile → build tự động
+5. Vào **Variables** tab, thêm:
+   ```
+   AGENT_API_KEY = 4c6f311399c8d733a6c874c4183c80da5eb1d9473457495a015729434528e334
+   JWT_SECRET    = 5b3f082039705a980dd8bed67a0f9c4be094bb82f7993802acc0ea0a59bc20cd
+   ENVIRONMENT   = production
+   RATE_LIMIT_PER_MINUTE = 10
+   MONTHLY_BUDGET_USD    = 10.0
+   ```
+6. Vào **Settings** → **Networking** → **Generate Domain** → nhận URL!
+
+**Cách 2: Deploy qua CLI**
 
 ```bash
 # 1. Install Railway CLI
 npm i -g @railway/cli
 
-# 2. Login
+# 2. Login (mở browser tự động)
 railway login
 
-# 3. Init project
+# 3. Init project (chạy trong 06-lab-complete/)
+cd 06-lab-complete
 railway init
 
-# 4. Set environment variables
-railway variables set AGENT_API_KEY=your-secret-api-key-here
-railway variables set JWT_SECRET=your-jwt-secret-here
+# 4. Set secrets
+railway variables set AGENT_API_KEY=$(python -c "import secrets; print(secrets.token_hex(32))")
+railway variables set JWT_SECRET=$(python -c "import secrets; print(secrets.token_hex(32))")
 railway variables set ENVIRONMENT=production
 railway variables set RATE_LIMIT_PER_MINUTE=10
 railway variables set MONTHLY_BUDGET_USD=10.0
@@ -40,7 +65,7 @@ railway variables set MONTHLY_BUDGET_USD=10.0
 # 5. Deploy
 railway up
 
-# 6. Get public URL
+# 6. Get URL
 railway domain
 ```
 
