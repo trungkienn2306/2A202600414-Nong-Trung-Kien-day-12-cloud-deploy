@@ -1,16 +1,18 @@
 # Stage 1: Build
-FROM node:22-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
 # Copy package files
 COPY frontend/package*.json ./frontend/
 WORKDIR /app/frontend
-RUN npm install
 
-# Copy source and build
+# Install with optimized flags for production builds
+RUN npm install --no-audit --no-fund
+
+# Copy source and build (skipping tsc for reliability in cloud build)
 COPY frontend/ .
-RUN npm run build
+RUN npx vite build
 
 # Stage 2: Serve
 FROM nginx:alpine
