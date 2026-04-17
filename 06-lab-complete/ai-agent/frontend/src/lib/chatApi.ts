@@ -115,8 +115,9 @@ export async function postChat({
         endpoint,
         key_used_prefix: AGENT_API_KEY ? AGENT_API_KEY.slice(0, 3) + '***' : 'MISSING',
         browserOrigin: window.location.origin,
+        backendDetail: (body as any)?.detail || 'Unknown error'
       })
-      throw new Error('Không thể gửi tin tới backend.')
+      throw new Error(`Không thể gửi tin tới backend: ${(body as any)?.detail || res.statusText || 'Lỗi không xác định'}`)
     }
     if (body.status === 'error') {
       console.error('[chatApi] Backend returned error status', {

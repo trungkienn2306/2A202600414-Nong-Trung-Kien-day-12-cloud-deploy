@@ -95,8 +95,14 @@ def call_model(state: AgentState):
             model = llm
             
         response = model.invoke(final_messages)
-    except Exception as e:
-        logger.error(f"Error invoking Gemini LLM: {e}. Checking for OpenAI fallback...")
+        # In development, try to log exactly what we're sending to figure out why it crashes
+        logger.error(f"Error invoking primary LLM: {e}")
+        try:
+            debug_info = [(m.type, getattr(m, 'name', None), bool(getattr(m, 'tool_calls', None))) for m in final_messages]
+            logger.error(f"DEBUG final_messages sequence: {debug_info}")
+        except:
+            pass
+
         if settings.OPENAI_API_KEY:
             logger.info("Retrying with OpenAI fallback...")
             llm = ChatOpenAI(

@@ -139,7 +139,12 @@ async def chat_endpoint(request: ChatRequest, api_key: APIKey = Depends(get_api_
             
             agent_app.update_state(
                 config,
-                {"messages": [ToolMessage(tool_call_id=last_msg.tool_call_id, content=request.message)]}
+                {"messages": [ToolMessage(
+                    tool_call_id=last_msg.tool_call_id, 
+                    content=request.message, 
+                    id=last_msg.id,
+                    name=getattr(last_msg, 'name', 'request_user')
+                )]}
             )
             final_output = agent_app.invoke(None, config)
         else:
