@@ -76,13 +76,15 @@ memory = None
 if settings.REDIS_URL:
     try:
         from langgraph.checkpoint.redis import RedisSaver
-        # Redis Stack is required for this
-        memory = RedisSaver.from_conn_string(settings.REDIS_URL)
-        # Note: In a real production app, you might want to call memory.setup() 
-        # but here we'll assume it's handled or we'll add a startup script.
+        from redis import Redis
+        # Initialize Redis client manually to avoid context manager issues in long-running app
+        redis_client = Redis.from_url(settings.REDIS_URL)
+        memory = RedisSaver(redis_client)
+        # Required to create indices/structure on startup
+        memory.setup()
         logger.info(f"Using Redis checkpointer: {settings.REDIS_URL}")
     except ImportError:
-        logger.warning("langgraph-checkpoint-redis not installed. Falling back to SQLite.")
+        logger.warning("langgraph-checkpoint-redis or redis not installed. Falling back to SQLite.")
     except Exception as e:
         logger.error(f"Failed to connect to Redis: {e}. Falling back to SQLite.")
 

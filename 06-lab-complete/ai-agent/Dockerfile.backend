@@ -4,7 +4,7 @@ FROM python:3.12-slim AS builder
 WORKDIR /app
 
 # Install Python dependencies
-COPY requirements.txt .
+COPY 06-lab-complete/ai-agent/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir --user -r requirements.txt
 # Add specific redis checkpoint and openai fallback dependencies
 RUN pip install --no-cache-dir --user langgraph-checkpoint-redis pydantic-settings langchain-openai
@@ -24,7 +24,7 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 # Copy installed packages from builder
 COPY --from=builder /root/.local /home/appuser/.local
-COPY . .
+COPY 06-lab-complete/ai-agent/ ./
 
 # Environment variables
 ENV PATH=/home/appuser/.local/bin:$PATH

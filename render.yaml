@@ -10,7 +10,7 @@ services:
   - type: web
     name: ai-agent-backend
     runtime: docker
-    dockerContext: 06-lab-complete/ai-agent
+    dockerContext: .
     dockerfilePath: 06-lab-complete/ai-agent/Dockerfile.backend
     region: singapore
     plan: free
@@ -36,7 +36,7 @@ services:
   - type: web
     name: ai-agent-frontend
     runtime: docker
-    dockerContext: 06-lab-complete/ai-agent
+    dockerContext: .
     dockerfilePath: 06-lab-complete/ai-agent/Dockerfile.frontend
     region: singapore
     plan: free
