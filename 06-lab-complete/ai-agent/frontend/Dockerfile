@@ -27,4 +27,7 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+
+# Use shell form to allow envsubst to run with environment variables
+# We explicitly list '$BACKEND_URL' so envsubst doesn't touch Nginx internal variables like $uri
+CMD ["/bin/sh", "-c", "envsubst '$BACKEND_URL' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]
