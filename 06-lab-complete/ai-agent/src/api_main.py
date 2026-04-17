@@ -71,7 +71,7 @@ async def get_api_key(
         logger.info("Auth Debug | Permitting empty key in development mode")
         return "dev-mode"
     
-    if api_key == settings.AGENT_API_KEY:
+    if api_key.strip() == settings.AGENT_API_KEY.strip():
         return api_key
     
     logger.warning(f"Auth Debug | Mismatch! Invalid API Key received.")

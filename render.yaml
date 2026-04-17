@@ -24,7 +24,7 @@ services:
           type: redis
           property: connectionString
       - key: AGENT_API_KEY
-        sync: false
+        value: "trung-kien-agent"
       - key: JWT_SECRET
         generateValue: true
       - key: OPENAI_API_KEY
@@ -50,4 +50,4 @@ services:
       - key: BACKEND_HOST
         value: ai-agent-backend-j6j5.onrender.com
       - key: VITE_AGENT_API_KEY
-        sync: false
+        value: "trung-kien-agent"

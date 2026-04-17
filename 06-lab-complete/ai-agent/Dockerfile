@@ -2,6 +2,7 @@
 FROM python:3.12-slim AS builder
 
 WORKDIR /app
+ENV PATH=/root/.local/bin:$PATH
 
 # Install Python dependencies
 COPY requirements.txt ./requirements.txt

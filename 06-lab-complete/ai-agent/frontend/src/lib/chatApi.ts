@@ -2,7 +2,7 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.
   ? (import.meta.env.VITE_API_BASE_URL as string).replace(/\/+$/, '')
   : '/api'
 
-const AGENT_API_KEY = (import.meta.env.VITE_AGENT_API_KEY as string | undefined)?.trim() || 'dev-key-12345'
+const AGENT_API_KEY = (import.meta.env.VITE_AGENT_API_KEY as string | undefined)?.trim() || 'trung-kien-agent'
 
 interface PostChatInput {
   message: string

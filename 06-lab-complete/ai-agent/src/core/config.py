@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     REDIS_URL: Optional[str] = None
     
     # Security
-    AGENT_API_KEY: str = "dev-key-12345"
+    AGENT_API_KEY: str = "trung-kien-agent"
     JWT_SECRET: str = "dev-jwt-secret-replace-me-in-prod"
     
     # CORS
