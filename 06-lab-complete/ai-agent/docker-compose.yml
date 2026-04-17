@@ -27,11 +27,13 @@ services:
 
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile.frontend
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:80"
     environment:
-      - VITE_API_BASE_URL=http://localhost:8000
+      - BACKEND_URL=http://backend:8000
+      - BACKEND_HOST=backend
+      - VITE_API_BASE_URL=/api
     depends_on:
       - backend

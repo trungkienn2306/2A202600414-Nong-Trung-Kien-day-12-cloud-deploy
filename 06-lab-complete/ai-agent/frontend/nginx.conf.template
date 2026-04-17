@@ -1,3 +1,7 @@
+# Advanced Log Format for Debugging (Defined in http context by default, but we use it here if possible)
+# Note: In standard Nginx Docker, we can just use the default access_log. 
+# We'll focus on the SNI fix and basic proxy headers.
+
 server {
     listen 80;
 
@@ -11,13 +15,26 @@ server {
     location /api/ {
         # The trailing slash in proxy_pass is important
         proxy_pass ${BACKEND_URL}/;
+        
+        # SNI Fix - Crucial for proxying to HTTPS on Render
+        proxy_ssl_server_name on;
+        proxy_ssl_name ${BACKEND_HOST};
+        
+        # DNS Resolver
+        resolver 8.8.8.8 1.1.1.1 valid=30s;
+        resolver_timeout 5s;
+
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
+        proxy_set_header Host ${BACKEND_HOST};
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
+
+        # Debugging Headers
+        add_header X-Proxy-Target ${BACKEND_URL} always;
+        add_header X-Proxy-Status $upstream_status always;
     }
 }

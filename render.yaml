@@ -47,5 +47,7 @@ services:
         value: /api
       - key: BACKEND_URL
         value: https://ai-agent-backend-j6j5.onrender.com
+      - key: BACKEND_HOST
+        value: ai-agent-backend-j6j5.onrender.com
       - key: VITE_AGENT_API_KEY
         sync: false

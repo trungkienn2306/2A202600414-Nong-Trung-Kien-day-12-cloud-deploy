@@ -22,13 +22,27 @@ interface HealthResponseDTO {
   missing_keys?: string[]
 }
 
-function debugRequestError(endpoint: string, error: unknown): void {
-  console.error('[chatApi] Request failed', {
+async function debugRequestError(endpoint: string, error: unknown, response?: Response): Promise<void> {
+  const errorDetails: any = {
     endpoint,
     apiBaseUrl: API_BASE_URL,
     browserOrigin: window.location.origin,
     error,
-  })
+  }
+
+  if (response) {
+    errorDetails.status = response.status
+    errorDetails.statusText = response.statusText
+    // Try to get response body (could be Nginx HTML error page)
+    try {
+      const text = await response.clone().text()
+      errorDetails.errorBodyPreview = text.slice(0, 500)
+    } catch (e) {
+      errorDetails.bodyError = 'Could not read response body'
+    }
+  }
+
+  console.error('[PRO_DEBUG_REPORT]', errorDetails)
 }
 
 async function safeJson(res: Response): Promise<unknown> {
@@ -65,7 +79,7 @@ export async function getHealth(): Promise<HealthResponseDTO> {
     }
     return body
   } catch (error) {
-    debugRequestError(endpoint, error)
+    await debugRequestError(endpoint, error, (error as any).response)
     throw error
   }
 }
@@ -110,7 +124,7 @@ export async function postChat({
       threadId: body.thread_id ?? null,
     }
   } catch (error) {
-    debugRequestError(endpoint, error)
+    await debugRequestError(endpoint, error, (error as any).response)
     throw error
   }
 }
