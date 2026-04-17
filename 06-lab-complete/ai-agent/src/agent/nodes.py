@@ -58,6 +58,8 @@ def call_model(state: AgentState):
     Node that calls the LLM with the current message history.
     It conditionally binds tools if settings.USE_TOOLS is True.
     """
+    messages = state["messages"]
+    
     # 1. Ensure System Prompt is present
     system_msg = [m for m in messages if isinstance(m, SystemMessage)]
     if not system_msg:
